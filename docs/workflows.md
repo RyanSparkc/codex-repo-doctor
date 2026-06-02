@@ -1,24 +1,25 @@
 # Workflows
 
-## PR Review
+## Readiness Check
 
-1. Read the changed files.
-2. Run `frontend-pr-review` for UI changes.
-3. Run `test-gap-analysis` for behavior changes.
-4. Add findings to the PR with severity and verification steps.
+1. Run `codex-repo-doctor doctor --root .`.
+2. Review the grouped output: Codex config, repository hygiene, automation, and agent workflow.
+3. Fix failures before treating the repository as ready for Codex-assisted maintenance.
+4. Fix warnings when they block repeatable verification or safe review.
 
-## Docs Sync
+## Readiness Init
 
-1. Identify changed public behavior.
-2. Compare README, docs, examples, and package scripts.
-3. Update stale commands, options, examples, and release notes.
+1. Run `codex-repo-doctor init --root path/to/repo`.
+2. Review generated files before committing them.
+3. Keep existing files when `init` reports `[skipped]`.
+4. Re-run the doctor command and record the score, level, and remaining warnings.
 
-## Release Readiness
+## Optional Skill Workflows
 
-For a future v0.3 workflow, release checks should verify:
+Optional skills are examples for focused review work:
 
-- Version bump.
-- Changelog entry.
-- Passing tests and build.
-- Updated docs.
-- Migration notes for breaking changes.
+- Run `frontend-pr-review` for UI-heavy changes.
+- Run `test-gap-analysis` when behavior changed and coverage is uncertain.
+- Run `docs-sync` when commands, public APIs, examples, or workflow semantics changed.
+
+Install them explicitly with `codex-repo-doctor add skill <name>`.

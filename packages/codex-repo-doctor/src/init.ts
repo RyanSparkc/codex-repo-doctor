@@ -42,7 +42,7 @@ export const addSkill = (root: string, skillName: string): WriteResult => {
 };
 
 export const formatWriteResult = (result: WriteResult): string => {
-  const lines = ['AI Maintainer Kit init result'];
+  const lines = ['Codex Repo Doctor init result'];
 
   for (const path of result.created) {
     lines.push(`[created] ${path}`);

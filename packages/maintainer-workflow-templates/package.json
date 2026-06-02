@@ -1,7 +1,7 @@
 {
   "name": "maintainer-workflow-templates",
   "version": "0.1.0",
-  "description": "Markdown templates for AI-assisted OSS maintainer workflows.",
+  "description": "Markdown templates for Codex repository readiness workflows.",
   "type": "module",
   "license": "MIT"
 }

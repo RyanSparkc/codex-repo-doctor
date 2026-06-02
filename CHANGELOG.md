@@ -5,5 +5,8 @@
 ### Added
 
 - Initial CLI seed with `doctor`, `init`, and `add skill`.
-- Frontend PR review, test gap analysis, and docs sync skills.
-- Maintainer workflow templates and Codex for OSS application notes.
+- Codex Repo Doctor readiness checks for Codex config, repository hygiene, automation, and agent workflow.
+- Readiness core templates for `AGENTS.md`, Codex config, PR verification, and maintainer docs.
+- Optional frontend review, test gap analysis, and docs sync workflow examples.
+- npm-ready package metadata and package-local CLI assets.
+- Codex plugin wrapper with `repo-readiness` plus optional workflow skills.

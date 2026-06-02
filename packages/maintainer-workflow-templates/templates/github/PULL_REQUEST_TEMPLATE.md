@@ -2,15 +2,14 @@
 
 ## Changes
 
-## Test Plan
+## Verification
 
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] E2E tests
-- [ ] Manual browser check
+- [ ] Tests or deterministic checks were run.
+- [ ] Documentation was updated or confirmed unchanged.
+- [ ] Risks and follow-up work are called out.
 
-## AI Review Checklist
+## Codex Readiness
 
-- [ ] Frontend state coverage checked
-- [ ] Test gaps checked
-- [ ] Docs sync checked
+- [ ] Agent guidance remains accurate.
+- [ ] Secrets and local env files were not added.
+- [ ] Generated files were not overwritten unexpectedly.

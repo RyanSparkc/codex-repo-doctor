@@ -1,0 +1,41 @@
+{
+  "name": "codex-repo-doctor",
+  "version": "0.1.0",
+  "description": "CLI for checking whether a repository is ready for safe, reviewable Codex maintenance.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "codex-repo-doctor": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -p ../../tsconfig.build.json",
+    "prepack": "pnpm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RyanSparkc/codex-repo-doctor.git"
+  },
+  "homepage": "https://github.com/RyanSparkc/codex-repo-doctor#readme",
+  "bugs": {
+    "url": "https://github.com/RyanSparkc/codex-repo-doctor/issues"
+  },
+  "keywords": [
+    "codex",
+    "repository-readiness",
+    "maintenance",
+    "cli"
+  ],
+  "files": [
+    "dist",
+    "assets",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}

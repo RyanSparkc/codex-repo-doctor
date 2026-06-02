@@ -1,8 +1,10 @@
-# Skills
+# Optional Skills
+
+Codex Repo Doctor does not install skills during default `init`. These skills are kept as optional workflow examples that can be added with `codex-repo-doctor add skill <name>`.
 
 ## frontend-pr-review
 
-Reviews frontend pull requests for component responsibility, state ownership, UI states, accessibility, responsive behavior, and missing tests.
+Reviews frontend changes for component responsibility, state ownership, UI states, accessibility, responsive behavior, and missing tests.
 
 ## test-gap-analysis
 
@@ -17,4 +19,4 @@ Checks whether README, docs, examples, CLI options, package scripts, and release
 - Keep `SKILL.md` concise.
 - Put detailed checklists under `references/`.
 - Include trigger context in the frontmatter `description`.
-- Prefer output formats that maintainers can paste into PR comments.
+- Prefer output formats that can be copied into PR notes.

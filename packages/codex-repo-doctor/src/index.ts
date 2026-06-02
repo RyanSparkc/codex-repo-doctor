@@ -46,12 +46,12 @@ const parseArgs = (argv: string[]): ParsedArgs => {
 };
 
 const help = (): string => {
-  return `create-ai-maintainer-kit
+  return `codex-repo-doctor
 
 Usage:
-  create-ai-maintainer-kit doctor [--root path]
-  create-ai-maintainer-kit init [--root path]
-  create-ai-maintainer-kit add skill <name> [--root path]
+  codex-repo-doctor doctor [--root path]
+  codex-repo-doctor init [--root path]
+  codex-repo-doctor add skill <name> [--root path]
 
 Skills:
   frontend-pr-review

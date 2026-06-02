@@ -1,0 +1,32 @@
+{
+  "name": "codex-repo-doctor",
+  "version": "0.1.0",
+  "description": "Codex repository readiness workflow bundle",
+  "author": {
+    "name": "RyanSparkc"
+  },
+  "homepage": "https://github.com/RyanSparkc/codex-repo-doctor#readme",
+  "repository": "https://github.com/RyanSparkc/codex-repo-doctor",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "repository-readiness",
+    "maintenance"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Repo Doctor",
+    "shortDescription": "Run repository readiness workflows for Codex-assisted maintenance.",
+    "longDescription": "Codex Repo Doctor wraps deterministic readiness checks, init guidance, and focused maintenance workflows for Codex-assisted repositories.",
+    "developerName": "RyanSparkc",
+    "category": "Productivity",
+    "capabilities": [
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Check this repo with Codex Repo Doctor.",
+      "Install readiness guidance for this repo.",
+      "Review this repo for docs and test gaps."
+    ]
+  }
+}

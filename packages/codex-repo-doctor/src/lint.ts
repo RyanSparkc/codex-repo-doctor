@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { initTemplates } from './templates.ts';
+import { initTemplates, skillTemplates } from './templates.ts';
 
 export interface LintIssue {
   label: string;
@@ -46,6 +46,10 @@ const workflowAssets: WorkflowAsset[] = [
   }
 ];
 
+const pluginName = 'codex-repo-doctor';
+const pluginRootPath = `plugins/${pluginName}`;
+const pluginManifestPath = `${pluginRootPath}/.codex-plugin/plugin.json`;
+const marketplacePath = '.agents/plugins/marketplace.json';
 const defaultRepoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../..');
 
 const collectRelativeFiles = (root: string, segments: string[] = []): string[] => {
@@ -132,7 +136,7 @@ export const validateSkillFrontmatter = (path: string, content: string): LintIss
   return issues;
 };
 
-const validateSkillAssets = (root: string, generatedFiles: Map<string, string>): LintIssue[] => {
+const validateSkillAssets = (root: string, generatedSkillFiles: Map<string, string>): LintIssue[] => {
   const issues: LintIssue[] = [];
   const skillsRoot = join(root, 'packages/frontend-review-skills/skills');
 
@@ -160,22 +164,22 @@ const validateSkillAssets = (root: string, generatedFiles: Map<string, string>):
     for (const relativePath of collectRelativeFiles(skillRoot)) {
       const targetPath = `${targetRoot}/${relativePath}`;
 
-      if (!generatedFiles.has(targetPath)) {
+      if (!generatedSkillFiles.has(targetPath)) {
         issues.push({
-          label: 'generated skill asset',
+          label: 'optional skill asset',
           path: targetPath,
-          detail: 'init output must include every package skill asset.'
+          detail: 'add skill output must include every package skill asset.'
         });
         continue;
       }
 
       const sourceContent = readFileSync(join(skillRoot, ...relativePath.split('/')), 'utf8');
 
-      if (generatedFiles.get(targetPath) !== sourceContent) {
+      if (generatedSkillFiles.get(targetPath) !== sourceContent) {
         issues.push({
-          label: 'generated skill asset content',
+          label: 'optional skill asset content',
           path: targetPath,
-          detail: 'Generated skill asset content must match the package source.'
+          detail: 'Optional skill asset content must match the package source.'
         });
       }
     }
@@ -223,7 +227,7 @@ const validateWorkflowAssets = (root: string, generatedFiles: Map<string, string
 };
 
 const shouldDogfoodAsset = (path: string): boolean => {
-  return path === '.codex/config.toml' || path === 'ai-maintainer.config.json' || path.startsWith('.agents/skills/');
+  return workflowAssets.some((asset) => asset.targetPath === path);
 };
 
 const validateDogfoodAssets = (root: string, generatedFiles: Map<string, string>): LintIssue[] => {
@@ -257,12 +261,207 @@ const validateDogfoodAssets = (root: string, generatedFiles: Map<string, string>
   return issues;
 };
 
+const parseJsonObject = (root: string, path: string): Record<string, unknown> | undefined => {
+  const value = JSON.parse(readFileSync(join(root, path), 'utf8')) as unknown;
+
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
+};
+
+const validatePluginManifest = (root: string): LintIssue[] => {
+  const issues: LintIssue[] = [];
+  const path = join(root, pluginManifestPath);
+
+  if (!existsSync(path)) {
+    return [
+      {
+        label: 'plugin manifest',
+        path: pluginManifestPath,
+        detail: 'Codex Repo Doctor plugin manifest is missing.'
+      }
+    ];
+  }
+
+  const manifest = parseJsonObject(root, pluginManifestPath);
+
+  if (!manifest) {
+    return [
+      {
+        label: 'plugin manifest json',
+        path: pluginManifestPath,
+        detail: 'Plugin manifest must contain a JSON object.'
+      }
+    ];
+  }
+
+  if (JSON.stringify(manifest).includes('[TODO:')) {
+    issues.push({
+      label: 'plugin manifest placeholder',
+      path: pluginManifestPath,
+      detail: 'Plugin manifest must not contain placeholder text.'
+    });
+  }
+
+  const expectedFields: [string, unknown][] = [
+    ['name', pluginName],
+    ['version', '0.1.0'],
+    ['description', 'Codex repository readiness workflow bundle'],
+    ['skills', './skills/']
+  ];
+
+  for (const [field, expected] of expectedFields) {
+    if (manifest[field] !== expected) {
+      issues.push({
+        label: 'plugin manifest field',
+        path: pluginManifestPath,
+        detail: `Plugin manifest field "${field}" must be ${JSON.stringify(expected)}.`
+      });
+    }
+  }
+
+  for (const unsupportedField of ['apps', 'mcpServers', 'hooks']) {
+    if (unsupportedField in manifest) {
+      issues.push({
+        label: 'plugin manifest unsupported field',
+        path: pluginManifestPath,
+        detail: `v0.1 plugin must not declare "${unsupportedField}".`
+      });
+    }
+  }
+
+  return issues;
+};
+
+const validateMarketplace = (root: string): LintIssue[] => {
+  const path = join(root, marketplacePath);
+
+  if (!existsSync(path)) {
+    return [
+      {
+        label: 'plugin marketplace',
+        path: marketplacePath,
+        detail: 'Repo marketplace must point at the Codex Repo Doctor plugin folder.'
+      }
+    ];
+  }
+
+  const marketplace = parseJsonObject(root, marketplacePath);
+  const plugins = marketplace?.plugins;
+  const entry = Array.isArray(plugins)
+    ? plugins.find((candidate): candidate is Record<string, unknown> => {
+        return Boolean(candidate && typeof candidate === 'object' && !Array.isArray(candidate) && candidate.name === pluginName);
+      })
+    : undefined;
+  const source = entry?.source;
+  const policy = entry?.policy;
+  const valid =
+    entry?.category === 'Productivity' &&
+    source &&
+    typeof source === 'object' &&
+    !Array.isArray(source) &&
+    (source as Record<string, unknown>).source === 'local' &&
+    (source as Record<string, unknown>).path === `./plugins/${pluginName}` &&
+    policy &&
+    typeof policy === 'object' &&
+    !Array.isArray(policy) &&
+    (policy as Record<string, unknown>).installation === 'AVAILABLE' &&
+    (policy as Record<string, unknown>).authentication === 'ON_INSTALL';
+
+  return valid
+    ? []
+    : [
+        {
+          label: 'plugin marketplace entry',
+          path: marketplacePath,
+          detail: 'Marketplace must include a local available Codex Repo Doctor plugin entry.'
+        }
+      ];
+};
+
+const validateRepoReadinessSkill = (root: string): LintIssue[] => {
+  const skillPath = `${pluginRootPath}/skills/repo-readiness/SKILL.md`;
+  const path = join(root, skillPath);
+
+  if (!existsSync(path)) {
+    return [
+      {
+        label: 'plugin repo-readiness skill',
+        path: skillPath,
+        detail: 'Plugin must include the repo-readiness skill.'
+      }
+    ];
+  }
+
+  const content = readFileSync(path, 'utf8');
+  const issues = validateSkillFrontmatter(skillPath, content);
+
+  if (!content.includes('codex-repo-doctor doctor --root .')) {
+    issues.push({
+      label: 'plugin repo-readiness deterministic command',
+      path: skillPath,
+      detail: 'repo-readiness must require the deterministic doctor command before LLM judgment.'
+    });
+  }
+
+  return issues;
+};
+
+const validatePluginSkillAssets = (root: string): LintIssue[] => {
+  const issues: LintIssue[] = [];
+  const skillsRoot = join(root, 'packages/frontend-review-skills/skills');
+
+  for (const skillName of readdirSync(skillsRoot).toSorted()) {
+    const skillRoot = join(skillsRoot, skillName);
+    const pluginSkillRoot = join(root, pluginRootPath, 'skills', skillName);
+
+    for (const relativePath of collectRelativeFiles(skillRoot)) {
+      const targetPath = `${pluginRootPath}/skills/${skillName}/${relativePath}`;
+      const sourceContent = readFileSync(join(skillRoot, ...relativePath.split('/')), 'utf8');
+      const target = join(pluginSkillRoot, ...relativePath.split('/'));
+
+      if (!existsSync(target)) {
+        issues.push({
+          label: 'plugin optional skill asset',
+          path: targetPath,
+          detail: 'Plugin must include every optional skill asset from the package source.'
+        });
+        continue;
+      }
+
+      if (readFileSync(target, 'utf8') !== sourceContent) {
+        issues.push({
+          label: 'plugin optional skill asset content',
+          path: targetPath,
+          detail: 'Plugin optional skill asset content must match the package source.'
+        });
+      }
+    }
+  }
+
+  return issues;
+};
+
+const validatePluginAssets = (root: string): LintIssue[] => {
+  const manifestIssues = validatePluginManifest(root);
+
+  if (manifestIssues.some((issue) => issue.label === 'plugin manifest')) {
+    return manifestIssues;
+  }
+
+  return [...manifestIssues, ...validateMarketplace(root), ...validateRepoReadinessSkill(root), ...validatePluginSkillAssets(root)];
+};
+
 export const lintMaintainerKit = (root = defaultRepoRoot): LintResult => {
   const generatedFiles = new Map(initTemplates().map((file) => [file.path, file.content]));
+  const generatedSkillFiles = new Map(
+    Object.values(skillTemplates)
+      .flat()
+      .map((file) => [file.path, file.content])
+  );
   const issues = [
-    ...validateSkillAssets(root, generatedFiles),
+    ...validateSkillAssets(root, generatedSkillFiles),
     ...validateWorkflowAssets(root, generatedFiles),
-    ...validateDogfoodAssets(root, generatedFiles)
+    ...validateDogfoodAssets(root, generatedFiles),
+    ...validatePluginAssets(root)
   ];
 
   return {
@@ -273,10 +472,10 @@ export const lintMaintainerKit = (root = defaultRepoRoot): LintResult => {
 
 export const formatLintReport = (result: LintResult): string => {
   if (result.issues.length === 0) {
-    return `AI Maintainer Kit lint\nRoot: ${result.root}\n[pass] maintainer kit assets`;
+    return `Codex Repo Doctor lint\nRoot: ${result.root}\n[pass] Codex Repo Doctor assets`;
   }
 
-  const lines = [`AI Maintainer Kit lint`, `Root: ${result.root}`];
+  const lines = [`Codex Repo Doctor lint`, `Root: ${result.root}`];
 
   for (const issue of result.issues) {
     lines.push(`[fail] ${issue.label} - ${issue.path} - ${issue.detail}`);

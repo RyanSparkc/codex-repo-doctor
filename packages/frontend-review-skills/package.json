@@ -1,7 +1,7 @@
 {
   "name": "frontend-review-skills",
   "version": "0.1.0",
-  "description": "Repo-local skills for AI-assisted frontend OSS maintenance.",
+  "description": "Optional repo-local workflow examples for Codex-assisted maintenance.",
   "type": "module",
   "license": "MIT"
 }

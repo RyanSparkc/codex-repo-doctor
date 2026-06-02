@@ -1,9 +1,9 @@
 {
-  "name": "ai-maintainer-kit",
+  "name": "codex-repo-doctor-workspace",
   "version": "0.1.0",
-  "description": "Reusable AI-assisted maintainer workflows for TypeScript frontend OSS repositories.",
+  "description": "Workspace for Codex Repo Doctor, a CLI for repository readiness checks.",
   "type": "module",
-  "private": false,
+  "private": true,
   "license": "MIT",
   "engines": {
     "node": ">=22.6"
@@ -13,11 +13,11 @@
     "packages/*"
   ],
   "scripts": {
-    "doctor": "node packages/create-ai-maintainer-kit/src/index.ts doctor --root .",
-    "test": "node --test packages/create-ai-maintainer-kit/test/*.test.ts",
+    "doctor": "node packages/codex-repo-doctor/src/index.ts doctor --root .",
+    "test": "node --test packages/codex-repo-doctor/test/*.test.ts",
     "typecheck": "tsc -p tsconfig.base.json --noEmit",
-    "lint": "node packages/create-ai-maintainer-kit/src/lint.ts",
-    "build": "pnpm typecheck"
+    "lint": "node packages/codex-repo-doctor/src/lint.ts",
+    "build": "tsc -p tsconfig.build.json"
   },
   "devDependencies": {
     "@types/node": "^22.19.19",

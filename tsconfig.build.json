@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "declaration": false,
+    "noEmit": false,
+    "outDir": "packages/codex-repo-doctor/dist",
+    "rewriteRelativeImportExtensions": true,
+    "rootDir": "packages/codex-repo-doctor/src",
+    "sourceMap": false
+  },
+  "include": ["packages/codex-repo-doctor/src/**/*.ts"]
+}

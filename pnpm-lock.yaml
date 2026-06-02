@@ -15,14 +15,7 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  packages/create-ai-maintainer-kit:
-    dependencies:
-      frontend-review-skills:
-        specifier: workspace:*
-        version: link:../frontend-review-skills
-      maintainer-workflow-templates:
-        specifier: workspace:*
-        version: link:../maintainer-workflow-templates
+  packages/codex-repo-doctor: {}
 
   packages/frontend-review-skills: {}
 
