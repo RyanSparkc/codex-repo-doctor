@@ -22,6 +22,11 @@ interface PackageJson {
   devDependencies?: Record<string, string>;
 }
 
+interface ParsedToml {
+  values: Record<string, string>;
+  sections: Record<string, Record<string, string>>;
+}
+
 const readPackageJson = (root: string): PackageJson | null => {
   const path = join(root, 'package.json');
 
@@ -35,6 +40,41 @@ const readPackageJson = (root: string): PackageJson | null => {
 const hasFile = (root: string, path: string): boolean => existsSync(join(root, path));
 
 const hasAnyFile = (root: string, paths: string[]): boolean => paths.some((path) => hasFile(root, path));
+
+const parseTomlStrings = (content: string): ParsedToml => {
+  const parsed: ParsedToml = {
+    values: {},
+    sections: {}
+  };
+  let currentSection: string | undefined;
+
+  for (const line of content.split(/\r?\n/)) {
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed.startsWith('#')) {
+      continue;
+    }
+
+    const sectionMatch = /^\[([A-Za-z0-9_.-]+)\]$/.exec(trimmed);
+
+    if (sectionMatch) {
+      currentSection = sectionMatch[1];
+      parsed.sections[currentSection] ??= {};
+      continue;
+    }
+
+    const valueMatch = /^([A-Za-z0-9_.-]+)\s*=\s*"([^"]*)"$/.exec(trimmed);
+
+    if (!valueMatch) {
+      continue;
+    }
+
+    const target = currentSection ? parsed.sections[currentSection] : parsed.values;
+    target[valueMatch[1]] = valueMatch[2];
+  }
+
+  return parsed;
+};
 
 const hasDependency = (pkg: PackageJson | null, name: string): boolean => {
   if (!pkg) {
@@ -96,6 +136,91 @@ const scriptCheck = (pkg: PackageJson | null, scriptName: string, importance: Ch
   };
 };
 
+const expectedValueCheck = (
+  label: string,
+  value: string | undefined,
+  expected: string,
+  failValue: string,
+  failDetail: string
+): DoctorCheck => {
+  if (value === expected) {
+    return {
+      label,
+      status: 'pass',
+      detail: value
+    };
+  }
+
+  if (value === failValue) {
+    return {
+      label,
+      status: 'fail',
+      detail: failDetail
+    };
+  }
+
+  return {
+    label,
+    status: 'warn',
+    detail: value ? `Found "${value}"; recommended "${expected}".` : `Set ${label} to "${expected}".`
+  };
+};
+
+const recommendedValueCheck = (label: string, value: string | undefined, expected: string): DoctorCheck => {
+  if (value === expected) {
+    return {
+      label,
+      status: 'pass',
+      detail: value
+    };
+  }
+
+  return {
+    label,
+    status: 'warn',
+    detail: value ? `Found "${value}"; recommended "${expected}".` : `Set ${label} to "${expected}".`
+  };
+};
+
+const codexConfigChecks = (root: string): DoctorCheck[] => {
+  const path = join(root, '.codex/config.toml');
+
+  if (!existsSync(path)) {
+    return [
+      {
+        label: 'Codex config',
+        status: 'warn',
+        detail: 'Add .codex/config.toml so agent sandbox and approval expectations are explicit.'
+      }
+    ];
+  }
+
+  const config = parseTomlStrings(readFileSync(path, 'utf8'));
+
+  return [
+    {
+      label: 'Codex config',
+      status: 'pass',
+      detail: '.codex/config.toml found.'
+    },
+    expectedValueCheck(
+      'Codex sandbox mode',
+      config.values.sandbox_mode,
+      'workspace-write',
+      'danger-full-access',
+      'danger-full-access grants unrestricted filesystem access; use workspace-write for OSS readiness.'
+    ),
+    expectedValueCheck(
+      'Codex approval policy',
+      config.values.approval_policy,
+      'on-request',
+      'never',
+      'never prevents explicit review for privileged commands; use on-request.'
+    ),
+    recommendedValueCheck('Codex Windows sandbox', config.sections.windows?.sandbox, 'elevated')
+  ];
+};
+
 export const detectProject = (root: string): Detection => {
   const pkg = readPackageJson(root);
   const packageManager = detectPackageManager(root);
@@ -131,11 +256,7 @@ export const detectProject = (root: string): Detection => {
       status: hasAnyFile(root, ['.github/workflows/ci.yml', '.github/workflows/ci.yaml']) ? 'pass' : 'warn',
       detail: hasAnyFile(root, ['.github/workflows/ci.yml', '.github/workflows/ci.yaml']) ? 'CI workflow found.' : 'Add CI to prove maintenance quality.'
     },
-    {
-      label: 'Playwright config',
-      status: hasAnyFile(root, ['playwright.config.ts', 'playwright.config.js']) ? 'pass' : 'warn',
-      detail: hasAnyFile(root, ['playwright.config.ts', 'playwright.config.js']) ? 'UI verification signal found.' : 'Optional: add Playwright for frontend flow verification.'
-    },
+    ...codexConfigChecks(root),
     {
       label: 'Maintainer docs',
       status: hasFile(root, 'docs/maintainer/review-checklist.md') ? 'pass' : 'warn',

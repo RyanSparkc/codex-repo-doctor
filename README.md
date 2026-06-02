@@ -13,6 +13,7 @@ Many OSS projects want Codex or other coding agents to help with review, documen
 - `create-ai-maintainer-kit doctor` inspects a repository for maintainer workflow readiness.
 - `create-ai-maintainer-kit init` writes an `AGENTS.md`, three skills, a PR template, and maintainer docs without overwriting existing files.
 - Repo-local skills cover frontend PR review, test gap analysis, and docs sync.
+- Codex readiness checks make project sandbox and approval expectations explicit.
 - Templates are intentionally plain Markdown so maintainers can review and edit them.
 
 ## Quick Start
@@ -69,9 +70,28 @@ The doctor command checks:
 - package manager lockfiles
 - React, Vue, Next.js, Vite, and TypeScript signals
 - test, build, lint, and typecheck scripts
-- Playwright config
+- Codex project config at `.codex/config.toml`
+- `sandbox_mode = "workspace-write"` and `approval_policy = "on-request"`
+- Windows Codex sandbox readiness through `[windows] sandbox = "elevated"`
 - GitHub workflow and PR template presence
 - `AGENTS.md`, docs, and maintainer workflow files
+
+## Codex Project Config
+
+Recommended low-risk defaults:
+
+```toml
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+approvals_reviewer = "user"
+
+[windows]
+sandbox = "elevated"
+```
+
+The doctor command warns when `.codex/config.toml` is missing, fails `danger-full-access` and `approval_policy = "never"`, and warns when Windows sandbox mode is missing or set to `unelevated`.
+
+This repository dogfoods the kit: root `.agents/skills/*`, `ai-maintainer.config.json`, `.codex/config.toml`, maintainer docs, and the PR template are committed so local maintenance uses the same workflow that the CLI installs for target repositories.
 
 ## Roadmap
 

@@ -218,9 +218,48 @@ const validateWorkflowAssets = (root: string, generatedFiles: Map<string, string
   return issues;
 };
 
+const shouldDogfoodAsset = (path: string): boolean => {
+  return path === 'ai-maintainer.config.json' || path.startsWith('.agents/skills/');
+};
+
+const validateDogfoodAssets = (root: string, generatedFiles: Map<string, string>): LintIssue[] => {
+  const issues: LintIssue[] = [];
+
+  for (const [path, content] of generatedFiles) {
+    if (!shouldDogfoodAsset(path)) {
+      continue;
+    }
+
+    const targetPath = join(root, path);
+
+    if (!existsSync(targetPath)) {
+      issues.push({
+        label: 'dogfood asset',
+        path,
+        detail: 'This repository should include the files its init command installs for target repositories.'
+      });
+      continue;
+    }
+
+    if (readFileSync(targetPath, 'utf8') !== content) {
+      issues.push({
+        label: 'dogfood asset content',
+        path,
+        detail: 'Root dogfood asset content must match the generated template.'
+      });
+    }
+  }
+
+  return issues;
+};
+
 export const lintMaintainerKit = (root = defaultRepoRoot): LintResult => {
   const generatedFiles = new Map(initTemplates().map((file) => [file.path, file.content]));
-  const issues = [...validateSkillAssets(root, generatedFiles), ...validateWorkflowAssets(root, generatedFiles)];
+  const issues = [
+    ...validateSkillAssets(root, generatedFiles),
+    ...validateWorkflowAssets(root, generatedFiles),
+    ...validateDogfoodAssets(root, generatedFiles)
+  ];
 
   return {
     root,
