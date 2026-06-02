@@ -1,0 +1,26 @@
+{
+  "name": "ai-maintainer-kit",
+  "version": "0.1.0",
+  "description": "Reusable AI-assisted maintainer workflows for TypeScript frontend OSS repositories.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.6"
+  },
+  "packageManager": "pnpm@10.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "doctor": "node packages/create-ai-maintainer-kit/src/index.ts doctor --root .",
+    "test": "node --test packages/create-ai-maintainer-kit/test/*.test.ts",
+    "typecheck": "tsc -p tsconfig.base.json --noEmit",
+    "lint": "node packages/create-ai-maintainer-kit/src/lint.ts",
+    "build": "pnpm typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.19",
+    "typescript": "^6.0.3"
+  }
+}

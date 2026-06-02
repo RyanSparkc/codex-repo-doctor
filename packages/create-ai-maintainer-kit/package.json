@@ -1,0 +1,17 @@
+{
+  "name": "create-ai-maintainer-kit",
+  "version": "0.1.0",
+  "description": "CLI for installing AI Maintainer Kit workflows into OSS repositories.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "create-ai-maintainer-kit": "src/index.ts"
+  },
+  "dependencies": {
+    "frontend-review-skills": "workspace:*",
+    "maintainer-workflow-templates": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22.6"
+  }
+}
