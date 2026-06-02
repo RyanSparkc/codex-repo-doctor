@@ -14,5 +14,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: node --test packages/create-ai-maintainer-kit/test/*.test.ts
-      - run: node packages/create-ai-maintainer-kit/src/index.ts doctor --root .
+      - run: corepack enable
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+      - run: pnpm run doctor
