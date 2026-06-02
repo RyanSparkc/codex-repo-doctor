@@ -49,6 +49,7 @@ test('init installs the complete maintainer workflow into a demo target repo', (
     assert.ok(result.created.includes('.agents/skills/test-gap-analysis/references/testing-checklist.md'));
     assert.ok(result.created.includes('.agents/skills/docs-sync/references/docs-sync-checklist.md'));
     assert.ok(result.created.includes('.github/PULL_REQUEST_TEMPLATE.md'));
+    assert.ok(result.created.includes('.codex/config.toml'));
     assert.ok(result.created.includes('docs/maintainer/ai-workflow.md'));
     assert.ok(result.created.includes('docs/maintainer/review-checklist.md'));
     assert.ok(result.created.includes('ai-maintainer.config.json'));
@@ -105,6 +106,10 @@ test('init output stays synchronized with package template assets', () => {
       join(repoRoot, 'packages/maintainer-workflow-templates/templates/github/PULL_REQUEST_TEMPLATE.md'),
       'utf8'
     )
+  );
+  assert.equal(
+    files.get('.codex/config.toml'),
+    readFileSync(join(repoRoot, 'packages/maintainer-workflow-templates/templates/codex/config.toml'), 'utf8')
   );
   assert.equal(
     files.get('docs/maintainer/review-checklist.md'),

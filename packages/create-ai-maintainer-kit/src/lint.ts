@@ -29,6 +29,10 @@ const workflowAssets: WorkflowAsset[] = [
     targetPath: '.github/PULL_REQUEST_TEMPLATE.md'
   },
   {
+    sourcePath: 'packages/maintainer-workflow-templates/templates/codex/config.toml',
+    targetPath: '.codex/config.toml'
+  },
+  {
     sourcePath: 'packages/maintainer-workflow-templates/templates/docs/maintainer/ai-workflow.md',
     targetPath: 'docs/maintainer/ai-workflow.md'
   },
@@ -219,7 +223,7 @@ const validateWorkflowAssets = (root: string, generatedFiles: Map<string, string
 };
 
 const shouldDogfoodAsset = (path: string): boolean => {
-  return path === 'ai-maintainer.config.json' || path.startsWith('.agents/skills/');
+  return path === '.codex/config.toml' || path === 'ai-maintainer.config.json' || path.startsWith('.agents/skills/');
 };
 
 const validateDogfoodAssets = (root: string, generatedFiles: Map<string, string>): LintIssue[] => {

@@ -71,6 +71,7 @@ export const skillTemplates: Record<SkillName, GeneratedFile[]> = Object.fromEnt
 const workflowTemplates = (): GeneratedFile[] => [
   readTemplate(maintainerWorkflowTemplatesRoot, 'templates/agents/default.AGENTS.md', 'AGENTS.md'),
   readTemplate(maintainerWorkflowTemplatesRoot, 'templates/github/PULL_REQUEST_TEMPLATE.md', '.github/PULL_REQUEST_TEMPLATE.md'),
+  readTemplate(maintainerWorkflowTemplatesRoot, 'templates/codex/config.toml', '.codex/config.toml'),
   readTemplate(
     maintainerWorkflowTemplatesRoot,
     'templates/docs/maintainer/ai-workflow.md',
